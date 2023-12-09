@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using proj_zal.Data;
 
@@ -10,12 +11,14 @@ using proj_zal.Data;
 namespace proj_zal.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231209210919_ChangeToGuid")]
+    partial class ChangeToGuid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.5");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -219,7 +222,10 @@ namespace proj_zal.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ArtistId")
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ArtistId1")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -237,7 +243,7 @@ namespace proj_zal.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArtistId");
+                    b.HasIndex("ArtistId1");
 
                     b.ToTable("Albums");
                 });
@@ -319,7 +325,7 @@ namespace proj_zal.Data.Migrations
                 {
                     b.HasOne("proj_zal.Models.Artist", "Artist")
                         .WithMany("Albums")
-                        .HasForeignKey("ArtistId")
+                        .HasForeignKey("ArtistId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
