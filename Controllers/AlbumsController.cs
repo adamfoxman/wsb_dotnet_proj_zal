@@ -12,35 +12,30 @@ namespace proj_zal.Controllers
 {
     public class AlbumsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IGenericService<Album> _albumService;
 
-        public AlbumsController(ApplicationDbContext context)
+        public AlbumsController(IGenericService<Album> albumService)
         {
-            _context = context;
+            _albumService = albumService;
         }
 
         // GET: Albums
         public async Task<IActionResult> Index()
         {
-              return _context.Albums != null ? 
-                          View(await _context.Albums.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Albums'  is null.");
+            return _albumService.GetAllAsync() != null ?
+                        View(await _albumService.GetAllAsync()) :
+                        Problem("Entity set 'ApplicationDbContext.Albums'  is null.");
         }
 
         // GET: Albums/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null || _context.Albums == null)
+            if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
             }
 
-            var album = await _context.Albums
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (album == null)
-            {
-                return NotFound();
-            }
+            var album = await _albumService.GetAsync(id);
 
             return View(album);
         }
@@ -61,8 +56,7 @@ namespace proj_zal.Controllers
             if (ModelState.IsValid)
             {
                 album.Id = Guid.NewGuid();
-                _context.Add(album);
-                await _context.SaveChangesAsync();
+                await _albumService.AddAsync(album);
                 return RedirectToAction(nameof(Index));
             }
             return View(album);
@@ -71,16 +65,13 @@ namespace proj_zal.Controllers
         // GET: Albums/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null || _context.Albums == null)
+            if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
             }
 
-            var album = await _context.Albums.FindAsync(id);
-            if (album == null)
-            {
-                return NotFound();
-            }
+            var album = await _albumService.GetAsync(id);
+
             return View(album);
         }
 
@@ -100,8 +91,7 @@ namespace proj_zal.Controllers
             {
                 try
                 {
-                    _context.Update(album);
-                    await _context.SaveChangesAsync();
+                    await _albumService.UpdateAsync(album);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -122,17 +112,12 @@ namespace proj_zal.Controllers
         // GET: Albums/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null || _context.Albums == null)
+            if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
             }
 
-            var album = await _context.Albums
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (album == null)
-            {
-                return NotFound();
-            }
+            var album = await _albumService.GetAsync(id);
 
             return View(album);
         }
@@ -142,23 +127,22 @@ namespace proj_zal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            if (_context.Albums == null)
+            if (_albumService.GetAllAsync() == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Albums'  is null.");
             }
-            var album = await _context.Albums.FindAsync(id);
+            var album = await _albumService.GetAsync(id);
             if (album != null)
             {
-                _context.Albums.Remove(album);
+                await _albumService.DeleteAsync(id);
             }
-            
-            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool AlbumExists(Guid id)
         {
-          return (_context.Albums?.Any(e => e.Id == id)).GetValueOrDefault();
+            return _albumService.GetAsync(id) != null;
         }
     }
 }

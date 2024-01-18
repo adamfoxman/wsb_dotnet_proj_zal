@@ -12,31 +12,31 @@ namespace proj_zal.Controllers
 {
     public class ArtistsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        // private readonly ApplicationDbContext _artistService;
+        private readonly IGenericService<Artist> _artistService;
 
-        public ArtistsController(ApplicationDbContext context)
+        public ArtistsController(IGenericService<Artist> artistService)
         {
-            _context = context;
+            _artistService = artistService;
         }
 
         // GET: Artists
         public async Task<IActionResult> Index()
         {
-              return _context.Artists != null ? 
-                          View(await _context.Artists.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Artists'  is null.");
+            return _artistService.GetAllAsync() != null ?
+                        View(await _artistService.GetAllAsync()) :
+                        Problem("Entity set 'ApplicationDbContext.Artists'  is null.");
         }
 
         // GET: Artists/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null || _context.Artists == null)
+            if (id == null || _artistService.GetAllAsync() == null)
             {
                 return NotFound();
             }
 
-            var artist = await _context.Artists
-                .FirstOrDefaultAsync(m => m.ArtistId == id);
+            var artist = await _artistService.GetAsync(id);
             if (artist == null)
             {
                 return NotFound();
@@ -61,8 +61,7 @@ namespace proj_zal.Controllers
             if (ModelState.IsValid)
             {
                 artist.ArtistId = Guid.NewGuid();
-                _context.Add(artist);
-                await _context.SaveChangesAsync();
+                await _artistService.AddAsync(artist);
                 return RedirectToAction(nameof(Index));
             }
             return View(artist);
@@ -71,16 +70,12 @@ namespace proj_zal.Controllers
         // GET: Artists/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null || _context.Artists == null)
+            if (id == null || _artistService.GetAsync(id) == null)
             {
                 return NotFound();
             }
 
-            var artist = await _context.Artists.FindAsync(id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
+            var artist = await _artistService.GetAsync(id);
             return View(artist);
         }
 
@@ -100,8 +95,7 @@ namespace proj_zal.Controllers
             {
                 try
                 {
-                    _context.Update(artist);
-                    await _context.SaveChangesAsync();
+                    await _artistService.UpdateAsync(artist);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -122,18 +116,12 @@ namespace proj_zal.Controllers
         // GET: Artists/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null || _context.Artists == null)
+            if (id == null || _artistService.GetAsync(id) == null)
             {
                 return NotFound();
             }
 
-            var artist = await _context.Artists
-                .FirstOrDefaultAsync(m => m.ArtistId == id);
-            if (artist == null)
-            {
-                return NotFound();
-            }
-
+            var artist = await _artistService.GetAsync(id);
             return View(artist);
         }
 
@@ -142,23 +130,22 @@ namespace proj_zal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            if (_context.Artists == null)
+            if (_artistService.GetAllAsync() == null)
             {
                 return Problem("Entity set 'ApplicationDbContext.Artists'  is null.");
             }
-            var artist = await _context.Artists.FindAsync(id);
+            var artist = await _artistService.GetAsync(id);
             if (artist != null)
             {
-                _context.Artists.Remove(artist);
+                await _artistService.DeleteAsync(id);
             }
-            
-            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool ArtistExists(Guid id)
         {
-          return (_context.Artists?.Any(e => e.ArtistId == id)).GetValueOrDefault();
+            return _artistService.GetAsync(id) != null;
         }
     }
 }
