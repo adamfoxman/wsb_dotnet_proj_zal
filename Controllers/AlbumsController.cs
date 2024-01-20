@@ -13,15 +13,19 @@ namespace proj_zal.Controllers
     public class AlbumsController : Controller
     {
         private readonly IGenericService<Album> _albumService;
+        private readonly IGenericService<Artist> _artistService;
 
-        public AlbumsController(IGenericService<Album> albumService)
+        public AlbumsController(IGenericService<Album> albumService, IGenericService<Artist> artistService)
         {
             _albumService = albumService;
+            _artistService = artistService;
         }
 
         // GET: Albums
         public async Task<IActionResult> Index()
         {
+            var artists = await _artistService.GetAllAsync();
+            ViewBag.Artists = new SelectList(artists, "ArtistId", "Name");
             return _albumService.GetAllAsync() != null ?
                         View(await _albumService.GetAllAsync()) :
                         Problem("Entity set 'ApplicationDbContext.Albums'  is null.");
@@ -30,6 +34,8 @@ namespace proj_zal.Controllers
         // GET: Albums/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
+            var artists = await _artistService.GetAllAsync();
+            ViewBag.Artists = new SelectList(artists, "ArtistId", "Name");
             if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
@@ -41,8 +47,10 @@ namespace proj_zal.Controllers
         }
 
         // GET: Albums/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var artists = await _artistService.GetAllAsync();
+            ViewBag.Artists = new SelectList(artists, "ArtistId", "Name");
             return View();
         }
 
@@ -65,6 +73,8 @@ namespace proj_zal.Controllers
         // GET: Albums/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
+            var artists = await _artistService.GetAllAsync();
+            ViewBag.Artists = new SelectList(artists, "ArtistId", "Name");
             if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
@@ -112,6 +122,8 @@ namespace proj_zal.Controllers
         // GET: Albums/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
+            var artists = await _artistService.GetAllAsync();
+            ViewBag.Artists = new SelectList(artists, "ArtistId", "Name");
             if (id == null || _albumService.GetAsync(id) == null)
             {
                 return NotFound();
